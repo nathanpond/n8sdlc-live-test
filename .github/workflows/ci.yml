@@ -1,0 +1,30 @@
+# CI gate (n8SDLC story #4). Defined once, exposed via workflow_call so the
+# release workflow reuses the identical gate (story #7).
+# Invariant 2: warnings are errors — eslint runs with --max-warnings 0 HERE,
+# not only in package.json scripts, so the gate cannot be softened by a script edit alone.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Lint (warnings are errors — invariant 2)
+        run: npx eslint . --max-warnings 0
+      - name: Tests
+        run: npx vitest run
