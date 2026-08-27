@@ -158,3 +158,26 @@ When `/n8-replan` processes an entry it appends `— reconciled by /n8-replan <d
   **Why:** Consistent with the file's existing refuse-don't-guess posture on
   corrupt input; clamping would hide corruption.
   **Issue:** #17
+
+## /n8-verify M2 — 2026-08-27
+
+- **Decision:** Verification record posted on milestone PR #20 instead of an
+  epic comment.
+  **Why:** The skill places the record "on each covered epic", but M2's audit
+  findings have no parent epic; the milestone PR is the nearest durable home.
+  **Issue:** #17, #18, #19
+
+## /n8-release v0.1.0 — 2026-08-27
+
+- **Release:** v0.1.0 @ 67f6d81 (main). Includes M0 (infra+CI, PR #15),
+  M1 (core commands, PR #16), M2 (audit fixes, PR #20).
+  **Triggered:** release.yml on tag push — CI gate reuse + build + tarball;
+  the workflow itself created the GitHub release with generated notes and
+  attached linkring-v0.1.0.tar.gz (gate and release jobs both succeeded).
+- **Decision:** Pushed the tag only; did not run `gh release create` locally.
+  **Why:** The skill's step 3 says to create the release directly, but this
+  project's release workflow already runs `gh release create` on tag push —
+  running both would fail the workflow. Human summary added afterward via
+  `gh release edit`.
+- **Decision:** No version-bump PR.
+  **Why:** package.json already carried 0.1.0, matching the tag.
