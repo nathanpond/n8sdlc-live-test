@@ -6,6 +6,16 @@ import { loadStore, nextIdOf, saveStore, type Bookmark } from "../storage.js";
 /** User-facing command failure (duplicate URL, bad input); stderr + exit 1. */
 export class CommandError extends Error {}
 
+/** C0 controls (U+0000–U+001F) and DEL (U+007F) — code-point check, since
+ * eslint's no-control-regex forbids the equivalent character class. */
+function hasControlChars(s: string): boolean {
+  for (const ch of s) {
+    const cp = ch.codePointAt(0)!;
+    if (cp < 0x20 || cp === 0x7f) return true;
+  }
+  return false;
+}
+
 export function add(parsed: ParsedCommand): string {
   const [url, ...extra] = parsed.positionals;
   if (url === undefined) throw new UsageError("add requires a <url> argument");
@@ -17,6 +27,18 @@ export function add(parsed: ParsedCommand): string {
     new URL(url);
   } catch {
     throw new CommandError(`'${url}' is not a valid URL`);
+  }
+  // Terminal-escape hardening (audit finding #19): the raw input string is
+  // what gets stored and later echoed by list/search, and `new URL()` accepts
+  // C0 controls. Reject rather than canonicalize to .href — canonicalizing
+  // would normalize (`https://x.com` → `https://x.com/`), contradicting the
+  // documented no-normalization decision above.
+  if (hasControlChars(url)) {
+    throw new CommandError("URLs may not contain control characters");
+  }
+  const tags = parseTags(parsed.flags.tags);
+  if (tags.some(hasControlChars)) {
+    throw new CommandError("tags may not contain control characters");
   }
 
   const store = loadStore();
@@ -31,7 +53,7 @@ export function add(parsed: ParsedCommand): string {
   const bookmark: Bookmark = {
     id: nextIdOf(store),
     url,
-    tags: parseTags(parsed.flags.tags),
+    tags,
     added: new Date().toISOString(),
   };
   store.bookmarks.push(bookmark);
