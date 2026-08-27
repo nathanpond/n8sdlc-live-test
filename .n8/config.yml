@@ -1,0 +1,10 @@
+version: 1
+stack: typescript
+initialized: 2026-08-27
+wiki: enabled
+repo: nathanpond/n8sdlc-live-test
+visibility: public
+ci: github-actions
+context7: declined
+security_findings: issues
+areas: [cli, ci, docs]
