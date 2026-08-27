@@ -112,3 +112,26 @@ When `/n8-replan` processes an entry it appends `— reconciled by /n8-replan <d
   **Why:** Delegated in #5's discretion; a peer dep is a runtime install
   requirement for a CLI in practice.
   **Issue:** #5
+- **Decision:** No URL normalization before the duplicate check — `add`
+  compares the exact stored string (`https://x.com` ≠ `https://x.com/`).
+  **Why:** Delegated in #6; least surprise, zero magic, documented in code.
+  **Issue:** #6
+- **Decision:** Id counter is an optional `nextId` field in the v1 envelope
+  (strict never-reuse, even after deleting the max id); counter-less files
+  fall back to max+1, and rm bumps the counter past a removed max id.
+  **Why:** Delegated in #11; strict monotonicity is what the story's truths
+  promise, and the optional field keeps format version 1.
+  **Issue:** #11 (implemented in #6's storage module)
+- **Decision:** `search` takes exactly one term; extra positionals are a usage
+  error with a "quote multi-word searches" hint.
+  **Why:** Delegated in #10; matches the `<text>` contract exactly.
+  **Issue:** #10
+- **Decision:** Empty-state wordings: "no bookmarks yet" / "no bookmarks
+  tagged 'x'" / "no bookmarks matching 'x'"; ADDED column shows the stored
+  ISO-8601 string unmodified.
+  **Why:** Delegated (#9/#10 discretion); simplest unambiguous forms.
+  **Issue:** #9, #10
+- **Decision:** v1 fixture includes an id gap and omits `nextId`.
+  **Why:** #12 discretion (assertion granularity) — freezes the oldest legal
+  shape, so the max+1 fallback path stays covered forever.
+  **Issue:** #12
