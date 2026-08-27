@@ -35,7 +35,3 @@ export function main(argv: string[]): number {
 if (import.meta.url === `file://${process.argv[1]}`) {
   process.exitCode = main(process.argv.slice(2));
 }
-
-// Intentional lint-WARNING tripwire for CI proof (story #4) — will be reverted.
-/* eslint-disable no-console */
-export const ciProofTripwire = true;
