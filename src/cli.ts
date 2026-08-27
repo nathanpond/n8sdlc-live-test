@@ -1,6 +1,13 @@
 #!/usr/bin/env node
 // linkring — a tiny CLI that manages a personal bookmarks file.
 // Invariant: zero runtime dependencies. Arg parsing is hand-rolled.
+//
+// Thin dispatcher only (subtask #8): parse, route to a command function, map
+// thrown errors to stderr + exit 1. Command modules never touch process/fs
+// directly — storage goes through src/storage.ts, output through src/output.ts.
+import { parseArgs, UsageError } from "./args.js";
+import { add, CommandError } from "./commands/add.js";
+import { StorageError } from "./storage.js";
 
 const USAGE = `linkring — personal bookmarks
 
@@ -11,24 +18,46 @@ Usage:
   linkring rm <id> [--json]
 `;
 
-export function main(argv: string[]): number {
-  const [command] = argv;
-  switch (command) {
-    case undefined:
-    case "help":
-    case "--help":
-    case "-h":
-      process.stdout.write(USAGE);
-      return command === undefined ? 1 : 0;
-    case "add":
-    case "list":
-    case "search":
-    case "rm":
-      process.stderr.write(`linkring: '${command}' is not implemented yet\n`);
+type Write = (s: string) => void;
+
+export function main(
+  argv: string[],
+  out: Write = (s) => process.stdout.write(s),
+  err: Write = (s) => process.stderr.write(s),
+): number {
+  try {
+    const parsed = parseArgs(argv);
+    switch (parsed.command) {
+      case undefined:
+        out(USAGE);
+        return 1;
+      case "help":
+      case "--help":
+      case "-h":
+        out(USAGE);
+        return 0;
+      case "add":
+        out(add(parsed));
+        return 0;
+      case "list":
+      case "search":
+      case "rm":
+        err(`linkring: '${parsed.command}' is not implemented yet\n`);
+        return 1;
+      default:
+        err(`linkring: unknown command '${parsed.command}'\n${USAGE}`);
+        return 1;
+    }
+  } catch (e) {
+    if (e instanceof UsageError) {
+      err(`linkring: ${e.message}\n${USAGE}`);
       return 1;
-    default:
-      process.stderr.write(`linkring: unknown command '${command}'\n${USAGE}`);
+    }
+    if (e instanceof CommandError || e instanceof StorageError) {
+      err(`linkring: ${e.message}\n`);
       return 1;
+    }
+    throw e; // real bugs crash loudly, they don't get a tidy exit code
   }
 }
 
