@@ -135,3 +135,26 @@ When `/n8-replan` processes an entry it appends `— reconciled by /n8-replan <d
   **Why:** #12 discretion (assertion granularity) — freezes the oldest legal
   shape, so the max+1 fallback path stays covered forever.
   **Issue:** #12
+
+## /n8-exec M2 — 2026-08-27
+
+- **Decision:** #17 and #18 share one commit (both edit src/storage.ts with
+  adjacent concerns) instead of strictly one commit per story.
+  **Why:** Hunk-splitting one small file across two commits adds risk for no
+  audit value; both Refs lines are in the body.
+  **Issue:** #17, #18
+- **Decision:** #19 fixed by *rejecting* control characters rather than the
+  issue's first suggested option (storing `new URL().href`).
+  **Why:** Canonicalizing normalizes (`https://x.com` → `https://x.com/`),
+  contradicting the documented no-normalization discretion from #6.
+  **Issue:** #19
+- **Decision:** Control check implemented as a code-point loop, not the
+  regex `[\x00-\x1f\x7f]`.
+  **Why:** eslint `no-control-regex` (invariant 2: warnings are errors)
+  rejects the character class; code beats a suppression pragma.
+  **Issue:** #19
+- **Decision:** nextId validation rejects (`StorageError`) rather than
+  silently clamping to max(id)+1.
+  **Why:** Consistent with the file's existing refuse-don't-guess posture on
+  corrupt input; clamping would hide corruption.
+  **Issue:** #17

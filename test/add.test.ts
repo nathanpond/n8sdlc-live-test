@@ -69,3 +69,23 @@ describe("linkring add", () => {
     expect(printed).toEqual(readStore().bookmarks[0]);
   });
 });
+
+// Audit regression (M2, finding #19): the crafted terminal-escape add from the
+// issue is a permanent test — attack-as-test.
+describe("control-character rejection (audit #19)", () => {
+  const ESC = String.fromCharCode(27); // 0x1b
+  const BEL = String.fromCharCode(7); // 0x07
+  it("rejects a URL smuggling an OSC escape sequence and leaves no file behind", async () => {
+    const { code, err } = await runCli(["add", `https://x.com/${ESC}]0;pwned${BEL}end`]);
+    expect(code).toBe(1);
+    expect(err).toContain("control characters");
+    expect(existsSync(store.path())).toBe(false);
+  });
+
+  it("rejects tags containing control characters", async () => {
+    const { code, err } = await runCli(["add", "https://x.com/", "--tags", `ok,${ESC}[2Jevil`]);
+    expect(code).toBe(1);
+    expect(err).toContain("control characters");
+    expect(existsSync(store.path())).toBe(false);
+  });
+});
