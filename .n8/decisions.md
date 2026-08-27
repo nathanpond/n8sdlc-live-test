@@ -103,3 +103,12 @@ When `/n8-replan` processes an entry it appends `— reconciled by /n8-replan <d
   violation — this config's rules are all error-severity, so a plain violation
   proves errors fail CI, not warnings.
   **Issue:** #4
+- **Decision:** Release artifact is `linkring-<tag>.tar.gz` (dist/ +
+  package.json), release notes auto-generated, concurrency group
+  `release-<ref>` with cancel-in-progress false.
+  **Why:** Claude's Discretion in #7; simplest formats that satisfy the AC.
+  **Issue:** #7
+- **Decision:** peerDependencies also guarded empty by the invariant test.
+  **Why:** Delegated in #5's discretion; a peer dep is a runtime install
+  requirement for a CLI in practice.
+  **Issue:** #5
