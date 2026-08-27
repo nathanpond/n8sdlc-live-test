@@ -7,6 +7,7 @@
 // directly — storage goes through src/storage.ts, output through src/output.ts.
 import { parseArgs, UsageError } from "./args.js";
 import { add, CommandError } from "./commands/add.js";
+import { list } from "./commands/list.js";
 import { StorageError } from "./storage.js";
 
 const USAGE = `linkring — personal bookmarks
@@ -40,6 +41,8 @@ export function main(
         out(add(parsed));
         return 0;
       case "list":
+        out(list(parsed));
+        return 0;
       case "search":
       case "rm":
         err(`linkring: '${parsed.command}' is not implemented yet\n`);
