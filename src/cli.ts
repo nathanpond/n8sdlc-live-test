@@ -8,6 +8,7 @@
 import { parseArgs, UsageError } from "./args.js";
 import { add, CommandError } from "./commands/add.js";
 import { list } from "./commands/list.js";
+import { search } from "./commands/search.js";
 import { StorageError } from "./storage.js";
 
 const USAGE = `linkring — personal bookmarks
@@ -44,6 +45,8 @@ export function main(
         out(list(parsed));
         return 0;
       case "search":
+        out(search(parsed));
+        return 0;
       case "rm":
         err(`linkring: '${parsed.command}' is not implemented yet\n`);
         return 1;
