@@ -1,0 +1,57 @@
+# Release workflow (n8SDLC story #7). "Production" for linkring is a tagged
+# GitHub release with build artifacts attached — no npm publish in v1.
+# The gate job reuses the exact CI gate from ci.yml (workflow_call) and the
+# release job needs: it, so a release can never be cut from failing code.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+# A release must never be cancelled mid-flight by a newer tag.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release create needs it; everything else stays read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Pack artifact
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          STAGE="linkring-${TAG}"
+          mkdir -p "${STAGE}"
+          cp -r dist "${STAGE}/dist"
+          cp package.json "${STAGE}/package.json"
+          tar -czf "${STAGE}.tar.gz" "${STAGE}"
+          echo "ARTIFACT=${STAGE}.tar.gz" >> "$GITHUB_ENV"
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" "${ARTIFACT}" \
+            --title "linkring ${GITHUB_REF_NAME}" \
+            --generate-notes
+          {
+            echo "## Release ${GITHUB_REF_NAME}"
+            echo "Artifact: ${ARTIFACT}"
+            echo "Next: download the tarball from the release page; run with 'node dist/cli.js'."
+          } >> "$GITHUB_STEP_SUMMARY"

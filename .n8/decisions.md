@@ -82,3 +82,33 @@ When `/n8-replan` processes an entry it appends `— reconciled by /n8-replan <d
 - **Decision:** No project-specific skills proposed (nothing recurs enough to
   pay for itself in a 4-command CLI); audit emphases recorded in the M2
   milestone description.
+
+## /n8-exec * — 2026-08-27
+
+- **Decision:** CI is a single job (`ci`) with typecheck/lint/test as sequential
+  steps, not parallel jobs.
+  **Why:** Claude's Discretion in #4; one required-check context keeps the
+  ruleset wiring simple for a repo this small.
+  **Issue:** #4
+- **Decision (Rule 3):** Regenerated `package-lock.json` and bumped devDependency
+  ranges to the locally installed toolchain (eslint ^10, @eslint/js ^10,
+  typescript ^6, vitest ^4, @types/node ^26).
+  **Why:** Lockfile was out of sync with package.json — `npm ci` failed with
+  EUSAGE on every CI runner (blocker inside #4's scope). Chose "align to what
+  the project actually builds and tests with locally" over downgrading, since
+  the local toolchain is the verified-green one.
+  **Issue:** #4
+- **Decision:** The warning-severity proof for #4 uses an unused
+  `eslint-disable` directive (reported at warning severity) rather than a rule
+  violation — this config's rules are all error-severity, so a plain violation
+  proves errors fail CI, not warnings.
+  **Issue:** #4
+- **Decision:** Release artifact is `linkring-<tag>.tar.gz` (dist/ +
+  package.json), release notes auto-generated, concurrency group
+  `release-<ref>` with cancel-in-progress false.
+  **Why:** Claude's Discretion in #7; simplest formats that satisfy the AC.
+  **Issue:** #7
+- **Decision:** peerDependencies also guarded empty by the invariant test.
+  **Why:** Delegated in #5's discretion; a peer dep is a runtime install
+  requirement for a CLI in practice.
+  **Issue:** #5
