@@ -11,6 +11,6 @@ This project is managed by the n8SDLC workflow (GitHub Issues = the plan; `/n8-s
 
 ## Invariants
 
-1. Zero runtime dependencies (dev dependencies are fine).
-2. Warnings and lint findings are errors in CI (`eslint --max-warnings 0`).
-3. The storage file format is versioned JSON — never break reading an older file.
+1. Zero runtime dependencies (dev dependencies are fine). — **test-enforced** (guard test asserts `package.json` `dependencies` is empty; planned into M0/CI)
+2. Warnings and lint findings are errors in CI (`eslint --max-warnings 0`, `tsc` strict). — **test-enforced** (build setting in the CI workflow)
+3. The storage file format is versioned JSON — never break reading an older file. — **test-enforced** (fixture tests read every prior on-disk format version; planned into M0/CI)
