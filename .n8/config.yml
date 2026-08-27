@@ -5,6 +5,16 @@ wiki: enabled
 repo: nathanpond/n8sdlc-live-test
 visibility: public
 ci: github-actions
+deployment:
+  dev: local checkout (npm run build; node dist/cli.js)
+  stage: none — no staging environment for a local CLI
+  production: tagged GitHub release with build artifacts attached; no npm publish in v1
+  notes: local-only CLI, no hosting, no databases, no secrets, no third-party services, no network calls in v1
+ci_detail:
+  provider: github-actions
+  on_pr: [typecheck, lint (eslint --max-warnings 0), tests (vitest)]
+  deploy_jobs: none
+  release: manual tag -> GitHub release with attached build artifacts
 context7: declined
 security_findings: issues
 areas: [cli, ci, docs]
